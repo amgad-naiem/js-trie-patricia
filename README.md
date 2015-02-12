@@ -20,4 +20,4 @@ example:
   console.log(data[1]); // matching data - "data2"
   tp.del_subnet("127.0.0.0/8"); 
   ```
-Note that the set, get and del are the only functionality that are working with IPs, other trie-patricia methods will not work
+Note that the **set_subnet**, **get_ip** and **del_subnet** are the only functionality that are working with IPs, other trie-patricia methods will not work
