@@ -8,6 +8,17 @@
  *      http://en.wikipedia.org/wiki/Radix_trie
  */
 
+function ip_to_binary(s) {
+	subs = s.split('.');
+	return getBinaryStr(subs[0]) + getBinaryStr(subs[1])+getBinaryStr(subs[2])+getBinaryStr(subs[3]);
+}
+
+function getBinaryStr(strInt){
+	var n1 = parseInt(strInt).toString(2);
+	n1="00000000".substr(n1.length)+n1;
+	return n1;
+}
+
 (function(global) {
 
 if (! Object.create || 'valueOf' in Object.create(null))
@@ -44,6 +55,13 @@ var TP = function(o) {
         };
     })(methods[p]);
 })({
+set_subnet: function(subnet, val){
+	var mask = subnet.match(/^(.*?)\/(\d{1,2})$/);
+	var subnet_ip = mask[1];
+	var subnet_mask = parseInt(mask[2]);
+	var key = ip_to_binary(subnet_ip).substr(0,subnet_mask);
+	return this.set(key,val);
+},
 set: function(key, val) {
     var cc = key.charAt(0),
         suf = key.substr(1);
@@ -68,9 +86,13 @@ set: function(key, val) {
     }
     return this;
 },
+get_ip: function(ip) {
+	var key = ip_to_binary(ip);
+	return this.get(key);
+},
 get: function(key) {
     var cc = key.charAt(0);
-    if (!this[cc]) return;
+    if (!this[cc]) return;// "" in this ? this[""][1] : undefined;
     if (!cc) return this[cc][1];
     var suf = key.substr(1);
     if (this[cc] instanceof TP) return this[cc].get(suf);
@@ -78,11 +100,17 @@ get: function(key) {
         pl = preflen(pk, suf);
     if (pv instanceof TP) {
         if (pk === suf.substr(0, pl)) return pv.get(suf.substr(pl));
+		else return "" in this ? this[""][1] : undefined;
     } else {
-        if (pk === suf) return pv;
+        if (pk === suf.substr(0,pk.length)) return pv;
+		else return "" in this ? this[""][1] : undefined;
     }
     return;
 },
+has_ip: function(ip) {
+	var key = ip_to_binary(ip);
+	return this.has(key);
+}
 has: function(key) {
     var cc = key.charAt(0);
     if (!this[cc]) return false;
@@ -93,10 +121,19 @@ has: function(key) {
         pl = preflen(pk, suf);
     if (pv instanceof TP) {
         if (pk === suf.substr(0, pl)) return pv.has(suf.substr(pl));
+		else return "" in this ? true : false;
     } else {
-        if (pk === suf) return true;
+        if (pk === suf.substr(0,pk.length)) return true;
+		else return "" in this ? true : false;
     }
     return false;
+},
+del_subnet: function(subnet){
+	var mask = subnet.match(/^(.*?)\/(\d{1,2})$/);
+	var subnet_ip = mask[1];
+	var subnet_mask = parseInt(mask[2]);
+	var key = ip_to_binary(subnet_ip).substr(0,subnet_mask);
+	return this.del(key);
 },
 del: function(key) {
     var cc = key.charAt(0);
